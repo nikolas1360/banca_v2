@@ -14,6 +14,7 @@ public class ContoCorrenteWeb extends ContoCorrente {
         {
             if(!(this.password.equals(passNew))){
                 this.password=passNew;
+                this.defaultPassword=false;
                 return true;
             }else{
                 return false;       //password scelta uguale a quella gia' impostata
@@ -29,8 +30,8 @@ public class ContoCorrenteWeb extends ContoCorrente {
             return false;   //password ancora di default
         }else{
             if(this.password.equals(pass)){
-                loggedIn=true;
-                return true;    //password corretta
+                return loggedIn=true; //password corretta
+
             }else{
                 return false;   //password errata
             }

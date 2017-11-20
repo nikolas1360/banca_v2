@@ -13,27 +13,32 @@ public class Banca {
         this.nConti=0;
     }
 
-    public void aggiungiConto(TipoClasse type, String cf){
+    public Conto aggiungiConto(TipoConto type, String cf){
         nConti++;
         String iban=radiceIban+nConti;
         switch (type){
             case CORRENTE:
                 conti.put(iban,new ContoCorrente(cf,iban));
-                break;
+                return conti.get(iban);
+
             case DEPOSITO:
                 conti.put(iban,new ContoDeposito(cf,iban));
-                break;
+                return conti.get(iban);
+
             case CORRENTEWEB:
                 conti.put(iban,new ContoCorrenteWeb(cf,iban));
-                break;
+                return conti.get(iban);
+
+            default:
+                return null;
         }
     }
 
     public boolean operazione(String iban, double importo){
         if(conti.containsKey(iban)){
             Conto c = conti.get(iban);
-            c.operazione(importo);
-            return true;
+            return c.operazione(importo);
+
         }else{
             return false;
         }
@@ -53,7 +58,7 @@ public class Banca {
         }
     }
 
-    public boolean cangePassword(String iban, String newPassword, String oldPassword){
+    public boolean changePassword(String iban, String newPassword, String oldPassword){
         if(conti.containsKey(iban)){
             Conto c = conti.get(iban);
             if(c instanceof ContoCorrenteWeb){
@@ -66,5 +71,24 @@ public class Banca {
         }
     }
 
+    public boolean addAccountable(String iban, TipoAccountable type, double importo){
+        if(conti.containsKey(iban)){
+            Conto c = conti.get(iban);
+            return c.addAccountable(type, importo);
+
+        }
+        return false; //non esiste un conto con questo iban
+    }
+
+    public boolean applicaAccountable(String iban){
+        if(conti.containsKey(iban)){
+            Conto c = conti.get(iban);
+            return c.applicaAccountable();
+
+        }
+        return false; //non esiste un conto con questo iban
+
+
+    }
 
 }

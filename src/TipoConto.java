@@ -1,3 +1,3 @@
-public enum TipoClasse {
+public enum TipoConto {
     CORRENTE,CORRENTEWEB,DEPOSITO;
 }

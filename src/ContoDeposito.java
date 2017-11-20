@@ -4,6 +4,15 @@ public class ContoDeposito extends Conto {
         super(cf,iban);
 
     }
+    @Override
+    public boolean addAccountable(TipoAccountable type, double importo){
+
+        if(type==TipoAccountable.ACCREDITO){
+            accountables.add(new Stipendio(type,importo));
+            return true;
+        }
+        return false; //addebiti non disponibili su questo tipo di conto
+    }
 
     @Override
     public boolean operazione(double qta){
@@ -12,7 +21,8 @@ public class ContoDeposito extends Conto {
             return true;
         }else{
             return false;   //impossibile prelevare soldi
-            }
         }
     }
+}
+
 
