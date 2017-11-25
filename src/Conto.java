@@ -1,3 +1,6 @@
+import Exceptions.InvalidOperationException;
+import Exceptions.OperationErrorException;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 
@@ -6,14 +9,13 @@ public abstract class Conto implements InterfaceConto{
     protected String iban;
     protected double saldo;
     protected ArrayList<Accountable> accountables;
-    private Iterator<Accountable> iterator;
+
 
     public Conto(String cf,String iban) {
         this.cf = cf;
         this.iban=iban;
         this.saldo=0;
         this.accountables=new ArrayList<Accountable>();
-        this.iterator=accountables.iterator();
     }
 
     public String getIban(){
@@ -23,17 +25,15 @@ public abstract class Conto implements InterfaceConto{
         return this.saldo;
     }
     public boolean operazione(double qta){
-        if(qta>0){
-            saldo+=qta;
-            return true;
-        }else{
-            if(this.saldo>(-qta)){
+        try{
+                checkSaldo(qta);
                 saldo+=qta;
                 return true;
-            }else{
-                return false;   //saldo insufficiente per il prelievo
-            }
+        }catch( OperationErrorException exc){
+            System.err.println(exc.getMessage() + " nel conto "+this.iban);
         }
+        return false;
+
     }
 
     public boolean addAccountable(TipoAccountable type, double importo){
@@ -60,13 +60,31 @@ public abstract class Conto implements InterfaceConto{
                saldo += acc.getImporto();
            }
        }
-        return flag;
+       try{
+           checkFlag(flag);
+       }catch(OperationErrorException exc){
+           System.err.println(exc.getMessage() + " Ipossibile addebitare accountable");
+       }
+       return flag;
+
     }
 
+    public void checkSaldo(double qta){
+        if(this.saldo<(-qta)){
+            throw new OperationErrorException();   //saldo insufficiente per il prelievo
+        }
+
+    }
+    private void checkFlag(boolean flag){
+        if(flag==false){
+            throw new OperationErrorException();
+        }
+
+    }
     public String toString(){
         String str=cf+" "+iban + " " +saldo +"\n"+"LISTA ACCOUNTABLES:\n";
         for(Accountable acc: accountables) {
-            str+="- Tipo: " + acc.getType() + " Importo: " + acc.getImporto()+"\n";
+            str+="- Nome: " + acc.getClass().getName() + " Tipo: " + acc.getType() + " Importo: " + acc.getImporto()+"\n";
         }
         return str;
     }

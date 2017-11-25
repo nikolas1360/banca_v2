@@ -1,3 +1,5 @@
+import Exceptions.*;
+
 public class ContoCorrenteWeb extends ContoCorrente {
     private boolean loggedIn;
     private boolean defaultPassword;
@@ -10,50 +12,82 @@ public class ContoCorrenteWeb extends ContoCorrente {
     }
 
     public boolean changePassword(String passOld, String passNew){
-        if(this.password.equals(passOld))
-        {
-            if(!(this.password.equals(passNew))){
-                this.password=passNew;
-                this.defaultPassword=false;
-                return true;
-            }else{
-                return false;       //password scelta uguale a quella gia' impostata
-            }
-        }else{
-           return false;        //errore conferma vcchia password
+        try{
+            checkPassword(passOld);
+            checkNewPassword(passNew);
+            this.password=passNew;
+            this.defaultPassword=false;
+            return true;
+
+        }catch (LoginFailedException exc1) {
+            System.err.println(exc1.getMessage() + "vecchia password errata (impossibile cambiarla).");
+        }catch (ChangePassException exc2) {
+            System.err.println(exc2.getMessage() + "la nuova password è uguale alla vecchia");
         }
+        return false;
+
     }
 
     public boolean logIn(String pass){
-        if(defaultPassword)
-        {
-            return false;   //password ancora di default
-        }else{
-            if(this.password.equals(pass)){
-                return loggedIn=true; //password corretta
+        try{
+            checkFirstLogin();
+            checkPassword(pass);
+            return loggedIn=true;
 
-            }else{
-                return false;   //password errata
-            }
+
+        }catch(LoginFailedException exc1){
+            System.err.println(exc1.getMessage() + "password errata");
+
         }
+        catch( FirstLoginException exc2){
+            System.err.println(exc2.getMessage());
+
+        }
+        return false;
     }
 
     @Override
-     public boolean operazione(double qta){
-        if(loggedIn){
-            if(qta>0){
-                saldo+=qta;
-                return true;
-            }else{
-                if(this.saldo>(-qta)){
-                    saldo+=qta;
-                    return true;
-                }else{
-                    return false;   //saldo insufficiente per il prelievo
-                }
-            }
-        }else{
-            return false;    //utente non loggato
+    public boolean operazione(double qta){
+        try{
+            checkLogIn();
+            checkSaldo(qta);
+            saldo+=qta;
+            return true;
+        }catch(NotLoggedInException exc1){
+            System.err.println(exc1.getMessage());
+
+        }catch (OperationErrorException exc2){
+            System.err.println(exc2.getMessage());
         }
+        return false;
     }
+
+    private void checkLogIn(){
+         if(!(loggedIn)){
+             throw new NotLoggedInException();
+         }
+    }
+    private void checkFirstLogin(){
+        if(this.defaultPassword){
+            throw new LoginFailedException();
+        }
+
+
+    }
+    private void checkPassword(String password){
+        if(!(this.password.equals(password))){
+            throw  new LoginFailedException();
+        }
+
+
+    }
+    private void checkNewPassword( String passNew){
+        if(this.password.equals(passNew)){
+            throw new ChangePassException();
+        }
+
+    }
+
 }
+
+

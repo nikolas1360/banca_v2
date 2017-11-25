@@ -1,3 +1,6 @@
+import Exceptions.InvalidIbanException;
+import Exceptions.NotWebException;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,60 +38,91 @@ public class Banca {
     }
 
     public boolean operazione(String iban, double importo){
-        if(conti.containsKey(iban)){
-            Conto c = conti.get(iban);
+        try{
+            Conto c= getConto(iban);
             return c.operazione(importo);
-
-        }else{
-            return false;
+        }catch (InvalidIbanException exc){
+            System.err.println(iban + ": "+exc.getMessage());
         }
-
+        return false;
     }
 
     public boolean login(String iban, String password){
-        if(conti.containsKey(iban)){
-            Conto c = conti.get(iban);
-            if(c instanceof ContoCorrenteWeb){
-                return ((ContoCorrenteWeb) c).logIn(password);
-            }else{
-                return false;  //IL CONTO RELATIVO ALL'IBAN NON E' DI TIPO WEB
-            }
-        }else{
-            return false;   //iban non presente nell'hashmap
+        try{
+            Conto c = getConto(iban);
+            isWeb(c);
+            return ((ContoCorrenteWeb) c).logIn(password);
+
+        }catch(InvalidIbanException exc){
+            System.err.println(iban + ": " + exc.getMessage());
         }
+        catch(NotWebException e){
+        System.err.println(e.getMessage());
+        }
+        return false;
+
+
     }
 
     public boolean changePassword(String iban, String newPassword, String oldPassword){
-        if(conti.containsKey(iban)){
-            Conto c = conti.get(iban);
-            if(c instanceof ContoCorrenteWeb){
-               return ((ContoCorrenteWeb) c).changePassword(oldPassword,newPassword);
-            }else{
-                return false;  //IL CONTO RELATIVO ALL'IBAN NON E' DI TIPO WEB
-            }
-        }else{
-            return false;   //iban non presente nell'hashmap
+        try{
+            Conto c = getConto(iban);
+            isWeb(c);
+            return ((ContoCorrenteWeb) c).changePassword(oldPassword,newPassword);
+
+        }catch(InvalidIbanException exc){
+            System.err.println(iban + ": " + exc.getMessage());
         }
+        catch(NotWebException e){
+            System.err.println(e.getMessage());
+
+        }
+        return false;
     }
 
-    public boolean addAccountable(String iban, TipoAccountable type, double importo){
-        if(conti.containsKey(iban)){
-            Conto c = conti.get(iban);
-            return c.addAccountable(type, importo);
+    public boolean addAccountable(String iban, Accountable acc){
+        try{
+            Conto c=getConto(iban);
+            return c.addAccountable(acc.getType(), acc.getImporto());
+
+        }catch(InvalidIbanException exc){
+            System.err.println(iban + ": " + exc.getMessage());
 
         }
-        return false; //non esiste un conto con questo iban
+        return false;
+
     }
 
     public boolean applicaAccountable(String iban){
-        if(conti.containsKey(iban)){
-            Conto c = conti.get(iban);
+        try{
+            Conto c=getConto(iban);
             return c.applicaAccountable();
 
+        }catch(InvalidIbanException exc){
+            System.err.println(iban + ": " + exc.getMessage());
+
         }
-        return false; //non esiste un conto con questo iban
+        return false;
+    }
+
+    private void isWeb(Conto c){
+        if(!(c instanceof ContoCorrenteWeb)){
+            throw new NotWebException();
+        }
+
 
 
     }
+    private Conto getConto(String iban){
+        if(conti.containsKey(iban)){
+            Conto c = conti.get(iban);
+            return c;
 
+        }else
+        {
+            throw new InvalidIbanException();
+        }
+
+
+    }
 }
